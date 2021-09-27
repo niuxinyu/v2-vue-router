@@ -4,7 +4,7 @@ import Link from './components/link'
 // 保存 Vue 实例
 export let _Vue
 
-export function install (Vue) {
+export function install(Vue) {
   // 检查是否已经注册过 VueRouter 如果注册过直接返回
   if (install.installed && _Vue === Vue) return
   // 设置静态属性 installed
@@ -30,7 +30,7 @@ export function install (Vue) {
   // 全局混入
   // 我们知道 全局混入将会混入到之后创建的所有的 Vue 实例
   Vue.mixin({
-    beforeCreate () {
+    beforeCreate() {
       // 如果 this.$options.router 存在
       if (isDef(this.$options.router)) {
         // 将当前Vue实例保存到 _routerRoot 属性上
@@ -49,18 +49,22 @@ export function install (Vue) {
 
       registerInstance(this, this)
     },
-    destroyed () {
+    destroyed() {
       registerInstance(this)
     }
   })
 
-  // 这里的代理应该还有其他用处
+
   Object.defineProperty(Vue.prototype, '$router', {
-    get () { return this._routerRoot._router }
+    get() {
+      return this._routerRoot._router
+    }
   })
 
   Object.defineProperty(Vue.prototype, '$route', {
-    get () { return this._routerRoot._route }
+    get() {
+      return this._routerRoot._route
+    }
   })
 
   // 注册全局组件

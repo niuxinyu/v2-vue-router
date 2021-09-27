@@ -12,9 +12,6 @@ const Home1 = {
 }
 const Other = Vue.extend({
     template: `<h1>Other</h1>`,
-    created() {
-        console.log(this._route)
-    }
 })
 
 const router = new VueRouter({
