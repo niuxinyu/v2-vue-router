@@ -16,7 +16,6 @@ export function fillParams (
 
   params = params || {}
 
-
   try {
     const filler =
       regexpCompileCache[path] ||

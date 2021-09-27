@@ -6,7 +6,7 @@ import { stringifyQuery } from './query'
 const trailingSlashRE = /\/?$/
 
 export function createRoute (
-  record: ?RouteRecord, // 处理过的单一路由
+  record: ?RouteRecord, // 处理过的单一路由 或 null
   location: Location, // 浏览第地址栏路径
   redirectedFrom?: ?Location, // 重定向自
   router?: VueRouter // VueRouter
@@ -136,11 +136,17 @@ function queryIncludes (current: Dictionary<string>, target: Dictionary<string>)
 }
 
 export function handleRouteEntered (route: Route) {
+
   for (let i = 0; i < route.matched.length; i++) {
     const record = route.matched[i]
     for (const name in record.instances) {
+
+      // 组件实例
       const instance = record.instances[name]
+
+      // ???
       const cbs = record.enteredCbs[name]
+
       if (!instance || !cbs) continue
       delete record.enteredCbs[name]
       for (let i = 0; i < cbs.length; i++) {

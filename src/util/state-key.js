@@ -13,6 +13,7 @@ export function genStateKey (): string {
 
 let _key: string = genStateKey()
 
+// 根据 performance 获取时间戳
 export function getStateKey () {
   return _key
 }

@@ -74,6 +74,7 @@ export function flatMapComponents (
   matched: Array<RouteRecord>,
   fn: Function
 ): Array<?Function> {
+  // 这里处理的前提是存在 components 选项
   return flatten(matched.map(m => {
     return Object.keys(m.components).map(key => fn(
       m.components[key],
@@ -83,6 +84,7 @@ export function flatMapComponents (
   }))
 }
 
+// 扁平化最高二维数组
 export function flatten (arr: Array<any>): Array<any> {
   return Array.prototype.concat.apply([], arr)
 }

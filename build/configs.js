@@ -4,6 +4,7 @@ const flow = require('rollup-plugin-flow-no-whitespace')
 const cjs = require('@rollup/plugin-commonjs')
 const node = require('@rollup/plugin-node-resolve').nodeResolve
 const replace = require('rollup-plugin-replace')
+const {getConfig} = require("lint-staged/src/getConfig");
 const version = process.env.VERSION || require('../package.json').version
 const banner =
 `/*!
@@ -14,7 +15,7 @@ const banner =
 
 const resolve = _path => path.resolve(__dirname, '../', _path)
 
-module.exports = [
+const baseAlias =  [
   // browser dev
   {
     file: resolve('dist/vue-router.js'),
@@ -46,7 +47,26 @@ module.exports = [
     env: 'production',
     transpile: false
   }
-].map(genConfig)
+]
+
+// 根据参数生成dist文件到指定文件夹
+const alias = {
+  'public': {
+    file: resolve('../dist/vue-router/vue-router.js'),
+    format: 'umd',
+    env: 'development'
+  },
+  'umd-dev': baseAlias[0],
+  'umd-prod': baseAlias[1],
+  'cjs': baseAlias[2],
+}
+
+function getAlias () {
+  const target = process.env.TARGET || 'all'
+  return alias[target]
+}
+
+module.exports = genConfig(getAlias())
 
 function genConfig (opts) {
   const config = {

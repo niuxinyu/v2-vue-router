@@ -1,8 +1,16 @@
+const shouldCompilerToPublic = process.argv && process.argv[2] || ''
 const express = require('express')
 const rewrite = require('express-urlrewrite')
 const webpack = require('webpack')
+const fs = require('fs')
+const path = require('path')
+
 const webpackDevMiddleware = require('webpack-dev-middleware')
-const WebpackConfig = require('./webpack.config')
+
+
+const WebpackConfig = require('./webpack.config')({
+  vueDist: !!shouldCompilerToPublic
+})
 
 const app = express()
 
@@ -15,9 +23,6 @@ app.use(
     },
   })
 )
-
-const fs = require('fs')
-const path = require('path')
 
 fs.readdirSync(__dirname).forEach(file => {
   if (fs.statSync(path.join(__dirname, file)).isDirectory()) {

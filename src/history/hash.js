@@ -87,7 +87,9 @@ export class HashHistory extends History {
   }
 
   ensureURL (push?: boolean) {
+    // 从 Base 类中获取当前路由的完整路径
     const current = this.current.fullPath
+    // 如果浏览器地址栏路径和当前需要跳转的路径不同，则 push 实现路由跳转
     if (getHash() !== current) {
       push ? pushHash(current) : replaceHash(current)
     }
@@ -118,12 +120,15 @@ function ensureSlash (): boolean {
 export function getHash (): string {
   // We can't use window.location.hash here because it's not
   // consistent across browsers - Firefox will pre-decode it!
-  let href = window.location.href
+  // 这里不使用 window.location.hash 的原因是在不同浏览器下实现不一致，Firefox 会对其预解码
+
+  let href = window.location.href // http://xxx/#/abc/
+
   const index = href.indexOf('#')
   // empty path
   if (index < 0) return ''
 
-  href = href.slice(index + 1)
+  href = href.slice(index + 1) // -> /abc/
 
   return href
 }

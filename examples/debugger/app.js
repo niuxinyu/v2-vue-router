@@ -1,14 +1,21 @@
+
 import Vue from 'vue'
-import VueRouter from '../../dist/vue-router.js'
+import VueRouter from 'vue-router'
 
 Vue.use(VueRouter)
 
 const Home = {
     template: `<h1>Home</h1>`
 }
-const Other = {
-    template: `<h1>Other</h1>`
+const Home1 = {
+    template: `<p>Home1</p>`
 }
+const Other = Vue.extend({
+    template: `<h1>Other</h1>`,
+    created() {
+        console.log(this._route)
+    }
+})
 
 const router = new VueRouter({
     // mode: 'history',
@@ -23,9 +30,13 @@ const router = new VueRouter({
             }
         },
         {
-            path: '/home',
+            path: '/home/:id?',
             name: 'home',
             component: Home
+            // components: {
+            //     default: Home,
+            //     Home1
+            // }
         },
         {
             path: '/other',
@@ -40,7 +51,7 @@ const router = new VueRouter({
 //     next()
 // })
 
-new Vue({
+window.vm = new Vue({
     el: '#app',
     router,
     template: `
@@ -48,6 +59,7 @@ new Vue({
         <router-link to="/home">Home</router-link>
         <router-link to="/other">Other</router-link>
         <router-view></router-view>
+        <router-view name="Home1"></router-view>
         </div>
     `,
 })

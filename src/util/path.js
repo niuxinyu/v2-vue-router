@@ -5,7 +5,6 @@ export function resolvePath (
   base: string, // 路由 base
   append?: boolean // 是否为添加 ??
 ): string {
-  console.log(relative);
   // 取路径的第一个字符
   const firstChar = relative.charAt(0)
   // 如果是 / 直接返回

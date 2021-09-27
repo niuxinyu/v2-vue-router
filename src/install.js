@@ -21,19 +21,19 @@ export function install (Vue) {
     let i = vm.$options._parentVnode
     // 所以这里的条件是
     // 如果 是子组件； 如果 组件的 data 选项存在，我们知道组件的 data 选项内定义了组件的 attrs 和一些 hook； 如果 data 内定义了 registerRouteInstance
-    // 函数，则调用它，并且传入的参数都是组件实例 vm
+    // 函数，则调用它，并且传入的参数都是 Vue实例
     if (isDef(i) && isDef(i = i.data) && isDef(i = i.registerRouteInstance)) {
       i(vm, callVal)
     }
   }
 
   // 全局混入
-  // 全局混入将会混入到所有的实例中去
+  // 我们知道 全局混入将会混入到之后创建的所有的 Vue 实例
   Vue.mixin({
     beforeCreate () {
       // 如果 this.$options.router 存在
       if (isDef(this.$options.router)) {
-        // 将当前组件实例保存到 _routerRoot 属性上
+        // 将当前Vue实例保存到 _routerRoot 属性上
         this._routerRoot = this
         // 将 this.$options.router 保存到 this._router 属性上
         this._router = this.$options.router
@@ -42,7 +42,7 @@ export function install (Vue) {
         // 通过 Vue 暴露出来的 defineReactive 方法，将当前路由定义到 this._route 属性上，并且使其成为响应式的
         Vue.util.defineReactive(this, '_route', this._router.history.current)
       } else {
-        // 如果 this.$options.router 不存在，依旧将当前组件实例保存到 this._routerRoot 上
+        // 如果 this.$options.router 不存在，依旧将当前Vue实例保存到 this._routerRoot 上
         // 当用户调用了 Vue.use(VueRouter) 但是没有传入 router 选项的时候会走这个分支
         this._routerRoot = (this.$parent && this.$parent._routerRoot) || this
       }
@@ -54,6 +54,7 @@ export function install (Vue) {
     }
   })
 
+  // 这里的代理应该还有其他用处
   Object.defineProperty(Vue.prototype, '$router', {
     get () { return this._routerRoot._router }
   })

@@ -155,7 +155,8 @@ export function createMatcher(
         hash,
         params
       }, undefined, location)
-    } else if (path) {
+    }
+    else if (path) {
       // 1. resolve relative redirect
       // 解析处理过的单一路由的路径
       const rawPath = resolveRecordPath(path, record)
@@ -163,6 +164,7 @@ export function createMatcher(
       // 处理 params 参数
       const resolvedPath = fillParams(rawPath, params, `redirect route with path "${rawPath}"`)
       // 3. rematch with existing query and hash
+      //
       return match({
         _normalized: true,
         path: resolvedPath,
@@ -203,10 +205,11 @@ export function createMatcher(
   ): Route {
     // 如果 单个路由存在 并且 单个路由内有重定向标志
     if (record && record.redirect) {
-      //
+      // 处理重定向
       return redirect(record, redirectedFrom || location)
     }
     if (record && record.matchAs) {
+      // 如果有路由别名
       return alias(record, location, record.matchAs)
     }
     return createRoute(record, location, redirectedFrom, router)

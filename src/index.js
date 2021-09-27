@@ -41,7 +41,7 @@ export default class VueRouter {
   constructor (options: RouterOptions = {}) {
     // 保存 Vue 实例
     this.app = null
-    // 组件实例数组
+    // Vue实例数组
     this.apps = []
     // new VueRouter 传入的 options 对象
     this.options = options
@@ -111,7 +111,7 @@ export default class VueRouter {
           `before creating root instance.`
       )
 
-    // 将当前组件实例保存到 this.apps 数组中
+    // 将当前Vue实例保存到 this.apps 数组中
     this.apps.push(app)
 
     // 设置执行一次的卸载钩子
@@ -120,12 +120,12 @@ export default class VueRouter {
     // https://github.com/vuejs/vue-router/issues/2639
     app.$once('hook:destroyed', () => {
       // clean out app from this.apps array once destroyed
-      // 每次卸载的时候，都会将组件实例从 apps 中删除
+      // 每次卸载的时候，都会将Vue实例从 apps 中删除
       const index = this.apps.indexOf(app)
       if (index > -1) this.apps.splice(index, 1)
       // ensure we still have a main app or null if no apps
       // we do not release the router so it can be reused
-      // 但是如果当前卸载的实例是 根组件实例 那么将其保存在 this.apps 中
+      // 但是如果当前卸载的实例是 根Vue实例 那么将其保存在 this.apps 中
       // 因为路由不会再次注册，所以这里需要根组件以保持有 router 的引用
       if (this.app === app) this.app = this.apps[0] || null
 
@@ -139,7 +139,7 @@ export default class VueRouter {
       return
     }
 
-    // 保存根组件实例
+    // 保存根Vue实例
     this.app = app
 
     // 缓存 this.history 对象
@@ -147,7 +147,9 @@ export default class VueRouter {
 
     // 如果 history 是 HTML5History 类的实例 或者 是 HashHistory 的实例
     if (history instanceof HTML5History || history instanceof HashHistory) {
+
       // 设置初始化滚动函数
+      // 将在路由跳转完成之后执行
       const handleInitialScroll = routeOrError => {
         const from = history.current
         const expectScroll = this.options.scrollBehavior
@@ -158,13 +160,13 @@ export default class VueRouter {
         }
       }
 
-      // 初始化 listeners
       const setupListeners = routeOrError => {
         history.setupListeners()
         handleInitialScroll(routeOrError)
       }
 
       // 调用 history 对象上的 transitionTo 方法转换路由
+      // 继承自 src/history/base.js Base 类
       history.transitionTo(
         history.getCurrentLocation(),
         setupListeners,
@@ -173,6 +175,8 @@ export default class VueRouter {
     }
 
     history.listen(route => {
+      // 更新所有Vue实例上的 _route 属性
+      // 包括第三方组件库的
       this.apps.forEach(app => {
         app._route = route
       })
