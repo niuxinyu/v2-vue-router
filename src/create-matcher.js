@@ -17,10 +17,10 @@ export type Matcher = {
 };
 
 export function createMatcher(
-  routes: Array<RouteConfig>, // 初始化传入的 options.routes
-  router: VueRouter // VueRouter
+  routes: Array<RouteConfig>, // 路由信息
+  router: VueRouter // VueRouter 实例
 ): Matcher {
-  // 创建 path map、name map 路由表 等
+  // 初始化这几个变量 初始化 route 信息对象等
   const {pathList, pathMap, nameMap} = createRouteMap(routes)
 
   function addRoutes(routes) {
@@ -50,11 +50,13 @@ export function createMatcher(
   }
 
   function match(
-    raw: RawLocation, // 路径 或者 ？？？
+    raw: RawLocation, //
     currentRoute?: Route, // 当前路由
     redirectedFrom?: Location // 重定向自
   ): Route {
-    // 规范化浏览第地址栏内的路径
+
+    // 规范化浏览器地址栏内的路径
+    // 处理出 path、query、hash 部分
     const location = normalizeLocation(raw, currentRoute, false, router)
 
     // 解构出 name 属性
@@ -92,7 +94,7 @@ export function createMatcher(
       for (let i = 0; i < pathList.length; i++) {
         const path = pathList[i]
         const record = pathMap[path]
-        // 判断 浏览第地址栏内的 path 和 用户定义的路由是否能够匹配
+        // 判断当前浏览器地址栏内的 path 是否可以和某一个路由信息对象的 正则 匹配上
         if (matchRoute(record.regex, location.path, location.params)) {
           // 如果能够匹配
           return _createRoute(record, location, redirectedFrom)
@@ -108,7 +110,6 @@ export function createMatcher(
     location: Location
   ): Route {
 
-    // 缓存重定向的路径名/路由名
     const originalRedirect = record.redirect
 
     // 判断重定向是否为一个函数
@@ -157,13 +158,10 @@ export function createMatcher(
       }, undefined, location)
     }
     else if (path) {
-      // 1. resolve relative redirect
       // 解析处理过的单一路由的路径
       const rawPath = resolveRecordPath(path, record)
-      // 2. resolve params
       // 处理 params 参数
       const resolvedPath = fillParams(rawPath, params, `redirect route with path "${rawPath}"`)
-      // 3. rematch with existing query and hash
       //
       return match({
         _normalized: true,
@@ -199,13 +197,13 @@ export function createMatcher(
   }
 
   function _createRoute(
-    record: ?RouteRecord, // 处理过的单个路由 或者 null
+    record: ?RouteRecord, // 路由信息对象
     location: Location, // 浏览器地址栏内路径
     redirectedFrom?: Location // 重定向自
   ): Route {
-    // 如果 单个路由存在 并且 单个路由内有重定向标志
+
+    // 处理重定向
     if (record && record.redirect) {
-      // 处理重定向
       return redirect(record, redirectedFrom || location)
     }
     if (record && record.matchAs) {
@@ -227,10 +225,11 @@ export function createMatcher(
  * @desc 匹配路由
  * */
 function matchRoute(
-  regex: RouteRegExp,
-  path: string,
-  params: Object
+  regex: RouteRegExp, // 正则对象
+  path: string, // 当前待匹配路径
+  params: Object // 参数信息
 ): boolean {
+
   const m = path.match(regex)
 
   if (!m) {
@@ -238,6 +237,7 @@ function matchRoute(
   } else if (!params) {
     return true
   }
+
 
   for (let i = 1, len = m.length; i < len; ++i) {
     const key = regex.keys[i - 1]
@@ -250,6 +250,6 @@ function matchRoute(
   return true
 }
 
-function resolveRecordPath(path: string /** 重定向路径 **/, record: RouteRecord /* 处理后的单一路由 */): string {
+function resolveRecordPath(path: string /** 重定向路径 **/, record: RouteRecord /* 处理后的单个路由对象 */): string {
   return resolvePath(path, record.parent ? record.parent.path : '/', true)
 }

@@ -49,7 +49,7 @@ export function resolvePath (
 }
 
 export function parsePath (path: string): {
-  path: string; // 路径
+  path: string; // 当前路径
   query: string;
   hash: string;
 } {

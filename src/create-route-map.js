@@ -8,36 +8,35 @@ import { assert, warn } from './util/warn'
  * @desc 根据 routes 构建 route 映射对象 设置和初始化其他属性
  * */
 export function createRouteMap (
-  routes: Array<RouteConfig>, // 初始化用户传入的 options.routes
-  oldPathList?: Array<string>,
-  oldPathMap?: Dictionary<RouteRecord>,
-  oldNameMap?: Dictionary<RouteRecord>,
-  parentRoute?: RouteRecord
+  routes: Array<RouteConfig>, // routes 信息对象 e.g 初始化时用户传入的 routes
+  oldPathList?: Array<string>, // 初始化时为 undefined
+  oldPathMap?: Dictionary<RouteRecord>, // 初始化时为 undefined
+  oldNameMap?: Dictionary<RouteRecord>, // 初始化时为 undefined
+  parentRoute?: RouteRecord // 初始化时为 undefined
 ): {
   pathList: Array<string>,
   pathMap: Dictionary<RouteRecord>,
   nameMap: Dictionary<RouteRecord>
 } {
 
-  // the path list is used to control path matching priority
-  // 路径列表 类似 ['/hone', '/other'] 这种的
+  // 路径列表 e.g ['/hone', '/other']
   const pathList: Array<string> = oldPathList || []
 
-  // 以 path 为键的 路由map 对象
+  // 以 path 为键的 路由对象 e.g { '/home': {} }
   // $flow-disable-line
   const pathMap: Dictionary<RouteRecord> = oldPathMap || Object.create(null)
 
-  // 以 name 为键的 路由mao 对象
+  // 以 name 为键的 路由对象 e.g { home: {} }
   // $flow-disable-line
   const nameMap: Dictionary<RouteRecord> = oldNameMap || Object.create(null)
 
-  // 遍历 options.routes
+  // 遍历 options.routes 生成路由对象
   routes.forEach(route => {
     addRouteRecord(pathList, pathMap, nameMap, route, parentRoute)
   })
 
 
-  // ensure wildcard routes are always at the end
+  // 确保通配符的总是放在最后边
   for (let i = 0, l = pathList.length; i < l; i++) {
     if (pathList[i] === '*') {
       pathList.push(pathList.splice(i, 1)[0])
@@ -47,9 +46,9 @@ export function createRouteMap (
   }
 
   if (process.env.NODE_ENV === 'development') {
-    // warn if routes do not include leading slashes
+    // 检查是否路由是否缺少 /
+    // e.g 比如 redirect / -> /other 在处理的时候， / 会被处理为 ''
     const found = pathList
-    // check for missing leading slash
       .filter(path => path && path.charAt(0) !== '*' && path.charAt(0) !== '/')
 
     if (found.length > 0) {
@@ -66,18 +65,17 @@ export function createRouteMap (
 }
 
 function addRouteRecord (
-  pathList: Array<string>, // 路由路径数组
-  pathMap: Dictionary<RouteRecord>, // path 为键的 map
-  nameMap: Dictionary<RouteRecord>, // name 为键的 map
-  route: RouteConfig, // 单个路由
-  parent?: RouteRecord, //
-  matchAs?: string // 用在路由别名中
+  pathList: Array<string>, // 路由路径数组 初始化为 []
+  pathMap: Dictionary<RouteRecord>, // path 为键的 map 初始化为 {}
+  nameMap: Dictionary<RouteRecord>, // name 为键的 map 初始化为 {}
+  route: RouteConfig, // 单个路由配置
+  parent?: RouteRecord, // 初始化为 undefined
+  matchAs?: string // 用在路由别名中 初始化为 undefined
 ) {
 
-  // 结构出 path 和 name
   const { path, name } = route
 
-  // 开发环境下，path 必填
+  // 一些警告信息
   // component 不能为组件名称或者组件id，必须是组件对象本身或者是一个异步函数
   if (process.env.NODE_ENV !== 'production') {
     assert(path != null, `"path" is required in a route configuration.`)
@@ -103,7 +101,7 @@ function addRouteRecord (
     route.pathToRegexpOptions || {}
 
   // 规范化 path
-  // 非严格模式去除路径最后的 /;
+  // 非严格模式去除路径最后的 /
   // 总体的作用就是去除路径中多余的 /
   const normalizedPath = normalizePath(path, parent, pathToRegexpOptions.strict)
 
@@ -139,9 +137,11 @@ function addRouteRecord (
   }
 
   if (route.children) {
-    // Warn if route is named, does not redirect and has a default child route.
-    // If users navigate to this route by name, the default child will
-    // not be rendered (GH Issue #629)
+    // 这里判断
+    // 如果路由被命名了且不包含重定向且子路由有默认路径 类似 \
+    // 那么在通过 name 导航到副路由的时候，子路由将不会被渲染
+
+    // TODO 带有 redirect 的路由的 children 不会被处理
     if (process.env.NODE_ENV !== 'production') {
       if (
         route.name &&
@@ -160,6 +160,7 @@ function addRouteRecord (
         )
       }
     }
+    // 递归处理 route.children
     route.children.forEach(child => {
       const childMatchAs = matchAs
         ? cleanPath(`${matchAs}/${child.path}`)
@@ -168,7 +169,7 @@ function addRouteRecord (
     })
   }
 
-  // 如果 path 在 path map 中不存在
+  // 如果 path 在 pathMap 中不存在
   // 分别在 pathList 和 pathMap 中保存一次
   if (!pathMap[record.path]) {
     pathList.push(record.path)
@@ -198,6 +199,7 @@ function addRouteRecord (
         path: alias,
         children: route.children
       }
+      // 添加一个新的路由记录
       addRouteRecord(
         pathList,
         pathMap,
@@ -252,11 +254,11 @@ function compileRouteRegex (
  * */
 function normalizePath (
   path: string,
-  parent?: RouteRecord,
-  strict?: boolean
+  parent?: RouteRecord, // 父级
+  strict?: boolean // 默认为 undefined
 ): string {
   if (!strict) path = path.replace(/\/$/, '')
-  if (path[0] === '/') return path
+  if (path[0] === '/') return path // 如果 / 开头 为父路由
   if (parent == null) return path
   return cleanPath(`${parent.path}/${path}`)
 }

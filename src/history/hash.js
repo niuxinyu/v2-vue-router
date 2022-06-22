@@ -46,11 +46,14 @@ export class HashHistory extends History {
         }
       })
     }
+
     const eventType = supportsPushState ? 'popstate' : 'hashchange'
+
     window.addEventListener(
       eventType,
       handleRoutingEvent
     )
+
     this.listeners.push(() => {
       window.removeEventListener(eventType, handleRoutingEvent)
     })
@@ -89,12 +92,15 @@ export class HashHistory extends History {
   ensureURL (push?: boolean) {
     // 从 Base 类中获取当前路由的完整路径
     const current = this.current.fullPath
-    // 如果浏览器地址栏路径和当前需要跳转的路径不同，则 push 实现路由跳转
+    // 如果浏览器地址栏路径和当前需要跳转的路径不同，则跳转到 current 路由
     if (getHash() !== current) {
       push ? pushHash(current) : replaceHash(current)
     }
   }
 
+  /**
+   * @desc 获取当前浏览器地址中的 hash 部分
+   * */
   getCurrentLocation () {
     return getHash()
   }
@@ -108,7 +114,11 @@ function checkFallback (base) {
   }
 }
 
+/**
+ * @desc 确保 hash 部分一定是以 / 开始的
+ * */
 function ensureSlash (): boolean {
+  // 获取 hash 部分
   const path = getHash()
   if (path.charAt(0) === '/') {
     return true
@@ -117,15 +127,16 @@ function ensureSlash (): boolean {
   return false
 }
 
+/**
+ * @desc 获取当前路由 hash 部分
+ * */
 export function getHash (): string {
-  // We can't use window.location.hash here because it's not
-  // consistent across browsers - Firefox will pre-decode it!
   // 这里不使用 window.location.hash 的原因是在不同浏览器下实现不一致，Firefox 会对其预解码
 
   let href = window.location.href // http://xxx/#/abc/
 
   const index = href.indexOf('#')
-  // empty path
+
   if (index < 0) return ''
 
   href = href.slice(index + 1) // -> /abc/
@@ -148,6 +159,9 @@ function pushHash (path) {
   }
 }
 
+/**
+ * @desc 替换路由
+ * */
 function replaceHash (path) {
   if (supportsPushState) {
     replaceState(getUrl(path))

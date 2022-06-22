@@ -1,7 +1,7 @@
 import View from './components/view'
 import Link from './components/link'
 
-// 保存 Vue 实例
+// 保存 Vue 构造函数
 export let _Vue
 
 export function install(Vue) {
@@ -9,15 +9,13 @@ export function install(Vue) {
   if (install.installed && _Vue === Vue) return
   // 设置静态属性 installed
   install.installed = true
-
+  // 保存 Vue 构造函数
   _Vue = Vue
 
-  // 工具函数 判断值是否为 unfettered
   const isDef = v => v !== undefined
 
-  // 暂时未知
   const registerInstance = (vm, callVal) => {
-    // 这里我们知道只有非 根实例 才会有 _parentVnode 属性
+    // 只有 非根实例才有 _parentVnode 属性
     let i = vm.$options._parentVnode
     // 所以这里的条件是
     // 如果 是子组件； 如果 组件的 data 选项存在，我们知道组件的 data 选项内定义了组件的 attrs 和一些 hook； 如果 data 内定义了 registerRouteInstance
@@ -28,7 +26,6 @@ export function install(Vue) {
   }
 
   // 全局混入
-  // 我们知道 全局混入将会混入到之后创建的所有的 Vue 实例
   Vue.mixin({
     beforeCreate() {
       // 如果 this.$options.router 存在
@@ -37,7 +34,7 @@ export function install(Vue) {
         this._routerRoot = this
         // 将 this.$options.router 保存到 this._router 属性上
         this._router = this.$options.router
-        // 调用 router 的 init 方法
+        // 调用 router 的 init 方法 并将当前的 Vue 实例传入
         this._router.init(this)
         // 通过 Vue 暴露出来的 defineReactive 方法，将当前路由定义到 this._route 属性上，并且使其成为响应式的
         Vue.util.defineReactive(this, '_route', this._router.history.current)
@@ -73,7 +70,7 @@ export function install(Vue) {
 
   // 自定义合并策略
   const strats = Vue.config.optionMergeStrategies
-  // use the same hook merging strategy for route hooks
+
   // 为 beforeRouteEnter、beforeRouteLeave、beforeRouteUpdate 这三个钩子使用 create 选项的合并策略
   strats.beforeRouteEnter = strats.beforeRouteLeave = strats.beforeRouteUpdate = strats.created
 }

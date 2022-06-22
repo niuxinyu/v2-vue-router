@@ -5,7 +5,10 @@ import VueRouter from 'vue-router'
 Vue.use(VueRouter)
 
 const Home = {
-    template: `<h1>Home</h1>`
+    template: `<div>
+<h1>Home</h1>
+<router-view></router-view>    
+</div>`
 }
 const Home1 = {
     template: `<p>Home1</p>`
@@ -21,19 +24,18 @@ const router = new VueRouter({
     routes: [
         {
             path: '/',
-            redirect: function () {
-                console.log(arguments)
-                return '/home'
-            }
+            redirect: '/home',
         },
         {
-            path: '/home/:id?',
+            path: '/home',
             name: 'home',
-            component: Home
-            // components: {
-            //     default: Home,
-            //     Home1
-            // }
+            component: Home,
+            children: [
+                {
+                    path: 'home1',
+                    component: Home1,
+                }
+            ],
         },
         {
             path: '/other',
@@ -43,20 +45,18 @@ const router = new VueRouter({
     ]
 })
 
-// router.beforeEach((from , to, next) => {
-//     console.log(666);
-//     next()
-// })
-
 window.vm = new Vue({
     el: '#app',
     router,
     template: `
         <div id="app">
         <router-link to="/home">Home</router-link>
+        <router-link to="/home/home1">Home1</router-link>
         <router-link to="/other">Other</router-link>
         <router-view></router-view>
-        <router-view name="Home1"></router-view>
         </div>
     `,
+    created() {
+        // console.log(this._router);
+    }
 })

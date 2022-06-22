@@ -39,34 +39,41 @@ export default class VueRouter {
   afterHooks: Array<?AfterNavigationHook>
 
   constructor (options: RouterOptions = {}) {
+
     // 保存 Vue 实例
     this.app = null
-    // Vue实例数组
+
+    // Vue 实例数组
     this.apps = []
-    // new VueRouter 传入的 options 对象
+
+    // 路由配置信息
     this.options = options
+
     // 全局的 beforeEach 钩子
     this.beforeHooks = []
+
     this.resolveHooks = []
+
     // 全局的 afterEach 钩子
     this.afterHooks = []
+
     // 根据 options.routes 创建基础路由表
     // 返回路由操作、匹配相关的函数
     this.matcher = createMatcher(options.routes || [], this)
 
-    // 路由模式，默认是 hash
+    // 路由模式，默认为 hash
     let mode = options.mode || 'hash'
 
-    // 是需要设置 回退函数 兜底操作
-    // 满足：路由模式为 history并且不支持 window.location.pushState 并且options.fallback 不是 false 则需要设置回退函数
+    // 如果用户设置了 history 路由，但是当前环境不支持 history.pushState 方法 并且设置了 fallback
     this.fallback =
       mode === 'history' && !supportsPushState && options.fallback !== false
 
-    // 如果需要设置回退函数
-    // 修改路由模式为 hash
+    // 如果可以 回退
+    // 则设置路由模式为 hash
     if (this.fallback) {
       mode = 'hash'
     }
+
     // 如果不是浏览器环境，设置路由模式为 abstract
     if (!inBrowser) {
       mode = 'abstract'
@@ -93,8 +100,10 @@ export default class VueRouter {
     }
   }
 
+  /**
+   * @desc raw 待匹配路由 current 当前路由
+   * */
   match (raw: RawLocation, current?: Route, redirectedFrom?: Location): Route {
-    //
     return this.matcher.match(raw, current, redirectedFrom)
   }
 
@@ -111,20 +120,15 @@ export default class VueRouter {
           `before creating root instance.`
       )
 
-    // 将当前Vue实例保存到 this.apps 数组中
+    // 将当前 Vue 实例保存到 this.apps 数组中
     this.apps.push(app)
 
-    // 设置执行一次的卸载钩子
-
-    // set up app destroyed handler
+    // 设置组件卸载的钩子
     // https://github.com/vuejs/vue-router/issues/2639
     app.$once('hook:destroyed', () => {
-      // clean out app from this.apps array once destroyed
       // 每次卸载的时候，都会将Vue实例从 apps 中删除
       const index = this.apps.indexOf(app)
       if (index > -1) this.apps.splice(index, 1)
-      // ensure we still have a main app or null if no apps
-      // we do not release the router so it can be reused
       // 但是如果当前卸载的实例是 根Vue实例 那么将其保存在 this.apps 中
       // 因为路由不会再次注册，所以这里需要根组件以保持有 router 的引用
       if (this.app === app) this.app = this.apps[0] || null
@@ -133,13 +137,12 @@ export default class VueRouter {
       if (!this.app) this.history.teardown()
     })
 
-    // main app previously initialized
-    // return as we don't need to set up new history listener
+
     if (this.app) {
       return
     }
 
-    // 保存根Vue实例
+    // 保存根 Vue 实例
     this.app = app
 
     // 缓存 this.history 对象
@@ -147,7 +150,6 @@ export default class VueRouter {
 
     // 如果 history 是 HTML5History 类的实例 或者 是 HashHistory 的实例
     if (history instanceof HTML5History || history instanceof HashHistory) {
-
       // 设置初始化滚动函数
       // 将在路由跳转完成之后执行
       const handleInitialScroll = routeOrError => {
@@ -160,14 +162,17 @@ export default class VueRouter {
         }
       }
 
+      // 当路由首次跳转完成之后
+      // 初始化例如 hashchange 等的事件
       const setupListeners = routeOrError => {
         history.setupListeners()
         handleInitialScroll(routeOrError)
       }
 
-      // 调用 history 对象上的 transitionTo 方法转换路由
-      // 继承自 src/history/base.js Base 类
+      // 调用 history 对象上的 transitionTo 方法切换路由
       history.transitionTo(
+        // 获取当前浏览器地址
+        // 根据实现不同获取方式也不同
         history.getCurrentLocation(),
         setupListeners,
         setupListeners

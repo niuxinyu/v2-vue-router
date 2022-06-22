@@ -14,7 +14,7 @@ export function normalizeLocation (
   router: ?VueRouter // VueRouter
 ): Location {
 
-  // 如果 raw 是字符串，也就是直接从 window.location 中取得的，格式化为 { path: '' } 的格式
+  // 格式化字符串路径为对象格式
   let next: Location = typeof raw === 'string' ? { path: raw } : raw
 
   // named target
@@ -46,10 +46,10 @@ export function normalizeLocation (
     return next
   }
 
-  // 处理原始路径 分离 出 path、query、hash
+  // 处理原始路径 分离 出 path、hash、query
   const parsedPath = parsePath(next.path || '')
 
-  // current 来自 src/util/route.js 中定义的 START 变量 默认值是 /
+  //
   const basePath = (current && current.path) || '/'
 
 

@@ -47,10 +47,16 @@ export class History {
   +setupListeners: Function
 
   constructor (router: Router, base: ?string) {
+    // 具体实现的路由实例 e.g hash 下的路由实例
     this.router = router
+
+    // 格式化路由根路径
     this.base = normalizeBase(base)
+
     // start with a route object that stands for "nowhere"
     this.current = START
+
+    // 等待跳转的路由
     this.pending = null
     this.ready = false
     this.readyCbs = []
@@ -78,18 +84,17 @@ export class History {
     this.errorCbs.push(errorCb)
   }
 
-  // 转换路由
+  // 切换路由
   transitionTo (
-    location: RawLocation, // 未处理过的路径
-    onComplete?: Function, //
-    onAbort?: Function
+    location: RawLocation, // 跳转之前的地址
+    onComplete?: Function, // 完成之后的回调
+    onAbort?: Function // 跳转中止的回调
   ) {
-    // 转换结果
+    // 和当前地址匹配的路由信息对象
     let route
     // catch redirect option https://github.com/vuejs/vue-router/issues/3201
     try {
       // 从注册的路由表列找出和当前给定的 location 匹配的路由
-      // 最终返回的结果是 src/util/route.js L21
       route = this.router.match(location, this.current)
     } catch (e) {
       this.errorCbs.forEach(cb => {
@@ -101,6 +106,7 @@ export class History {
 
     // 跳转之前，将当前路由保存为上次路由
     const prev = this.current
+
     // 确定跳转
     this.confirmTransition(
       route,
@@ -173,6 +179,8 @@ export class History {
 
     // 当前路由的最后一个匹配
     const lastCurrentIndex = current.matched.length - 1
+
+    // 如果是同一个路由
     if (
       isSameRoute(route, current) &&
       // in the case the route map has been dynamically appended to
@@ -180,10 +188,11 @@ export class History {
       route.matched[lastRouteIndex] === current.matched[lastCurrentIndex]
     ) {
       this.ensureURL()
+      // 中止
       return abort(createNavigationDuplicatedError(current, route))
     }
 
-    // 在 route.matched 中找到寂 将要更新的 updated 路由和 将要激活的路由 activated
+    // 在 route.matched 中找到 将要更新的 updated 路由和 将要激活的路由 activated
     // 在 this.current.matched 也就是上一次的路由 中找到即将失活的路由 deactivated
     const { updated, deactivated, activated } = resolveQueue(
       this.current.matched,
@@ -199,11 +208,12 @@ export class History {
       // in-component update hooks
       extractUpdateHooks(updated), // components 注册的组件内部 update 生命周期函数
       // in-config enter guards
-      activated.map(m => m.beforeEnter), // 简要跳转的组件内 beforeEnter 守卫函数
+      activated.map(m => m.beforeEnter), // 将要跳转的组件内 beforeEnter 守卫函数
       // async components
       resolveAsyncComponents(activated) // 异步组件解析钩子
     )
 
+    // 依次调用各种守卫
     const iterator = (hook: NavigationGuard, next) => {
       if (this.pending !== route) {
         return abort(createNavigationCancelledError(current, route))
@@ -244,8 +254,8 @@ export class History {
     runQueue(queue, iterator, () => {
       // wait until async components are resolved before
       // extracting in-component enter guards
-
       // queue 中的钩子全部执行完毕，执行这个回调函数
+
       const enterGuards = extractEnterGuards(activated)
 
       const queue = enterGuards.concat(this.router.resolveHooks)
@@ -296,6 +306,9 @@ export class History {
   }
 }
 
+/**
+ * @desc 格式化根路径
+ * */
 function normalizeBase (base: ?string): string {
   if (!base) {
     if (inBrowser) {
@@ -318,13 +331,14 @@ function normalizeBase (base: ?string): string {
 
 function resolveQueue (
   current: Array<RouteRecord>, // 当前路由
-  next: Array<RouteRecord> // 即将跳转的下一个路由
+  next: Array<RouteRecord> // 将跳转的下一个路由
 ): {
   updated: Array<RouteRecord>,
   activated: Array<RouteRecord>,
   deactivated: Array<RouteRecord>
 } {
   // 找到两个 matched 中不同的路由
+  // matched 多个的情况 例如从父路由向子路由跳转
   let i
   const max = Math.max(current.length, next.length)
   for (i = 0; i < max; i++) {
@@ -341,10 +355,10 @@ function resolveQueue (
 
 // 提取路由守卫
 function extractGuards (
-  records: Array<RouteRecord>, // 处理过的单一路由
+  records: Array<RouteRecord>, // 处理过的单个路由
   name: string, // 需要处理的守卫的名字
   bind: Function,
-  reverse?: boolean // 是否倒序
+  reverse?: boolean // 是否倒序 默认为 true
 ): Array<?Function> {
   // 扁平化 components 组件选项，如果没有 components 选项，这里返回一个空数组
   const guards = flatMapComponents(records, (def, instance, match, key) => {

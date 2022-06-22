@@ -2,9 +2,11 @@ import { warn } from '../util/warn'
 import { extend } from '../util/misc'
 import { handleRouteEntered } from '../util/route'
 
+// 函数式组件
 export default {
   name: 'RouterView',
   functional: true,
+  // router-view 的名字，路由的命名视图的时候会用到
   props: {
     name: {
       type: String,
@@ -15,6 +17,7 @@ export default {
     // used by devtools to display a router-view badge
     data.routerView = true
 
+    // 这个的 parent 是 Vue 实例
     // directly use parent context's createElement() function
     // so that components rendered by router-view can resolve named slots
     const h = parent.$createElement
@@ -24,8 +27,12 @@ export default {
 
     // determine current view depth, also check to see if the tree
     // has been toggled inactive but kept-alive.
+    // depth 表示子组件的深度
+    // 在 while 循环的过程中每次向上查找一次将这个值+1
     let depth = 0
     let inactive = false
+
+    // 如果 parent 不是 Vue 实例的话，通过 while 循环的方式找到 Vue 实例
     while (parent && parent._routerRoot !== parent) {
       const vnodeData = parent.$vnode ? parent.$vnode.data : {}
       if (vnodeData.routerView) {
@@ -55,7 +62,12 @@ export default {
       }
     }
 
+    // 通过 depth 深度来获取匹配的路由
+    // 上一步我们知道 depth 表示的组件的嵌套深度
     const matched = route.matched[depth]
+    // 这里的 name 是命名视图的 name 如果我们没有传进 name 的话这里是 default
+    // 在 src/create-route-map.js 中定义了 { default: component }
+    // 通过 component 获取组件实例
     const component = matched && matched.components[name]
 
     // render empty node if no matched route or no config component
@@ -64,11 +76,12 @@ export default {
       return h()
     }
 
-    // cache component
+    // 缓存组件
     cache[name] = { component }
 
     // attach instance registration hook
     // this will be called in the instance's injected lifecycle hooks
+    // 这里还未知 ??？
     data.registerRouteInstance = (vm, val) => {
       // val could be undefined for unregistration
       const current = matched.instances[name]
